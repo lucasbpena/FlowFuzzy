@@ -7,12 +7,6 @@ class Tanque():
     def __init__(self, tamanho, conteudo):
         self.tamanho = tamanho
         self.conteudo = conteudo 
-        if conteudo == 0:
-            self.porcentagem=0
-        elif conteudo == 0:
-            self.porcentagem=0            
-        else:
-            self.porcentagem = round((self.conteudo/self.tamanho)*100, 2)
         
     def Encher(self, vol):
         self.conteudo += vol
@@ -23,39 +17,42 @@ class Tanque():
         self.conteudo -= vol
         if self.conteudo < 0:
             self.conteudo = 0
-    
+
     def Status(self):
-        if self.porcentagem <= 80:
+        if self.conteudo <= 0:
+            porcentagem=0
+        else:
+            porcentagem = round((self.conteudo/self.tamanho)*100, 1)
+        
+        if porcentagem <= 80:
             status = 'OK'
-        elif self.porcentagem > 80:
+        elif porcentagem > 80:
             status = 'Acima do Limiar'
-        elif self.porcentagem > 100:
+        elif porcentagem > 100:
             status = 'OVERFLOW!'
         
-        return status
-    
-    def display(self):
-        barra = int(self.porcentagem / 2)  # 50 caracteres de largura para 100%
-        ascii_art = f"[{'#' * barra}{'.' * (50 - barra)}] {self.porcentagem:.2f}%"
-        return ascii_art
+        
+        return porcentagem, status
     
 vazao_in = 5#np.random.randint(0, 15)
-
+vazao_out = 3
 
 def Simulacao(total_time):
     
-    tanque = Tanque(1000, 0)
+    tanque = Tanque(1000, 50)
     t = 0
     while t <= total_time:
            
-        print(tanque.Status(), f'Capacidade = {tanque.porcentagem}%')
-        tanque.display()
+        porcentagem, status = tanque.Status()
+        print(f'Capacidade = {porcentagem}% --- {status}')
         tanque.Encher(vazao_in)
+        tanque.Esvaziar(vazao_out)
         t +=1
 
 
 
 Simulacao(500)
+
 
 
 
