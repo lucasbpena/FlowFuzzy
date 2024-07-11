@@ -39,11 +39,18 @@ class Tanque():
         self._atualizar_status()
 
 
-class Pertinencia():
+class Triangular(): # construtor da funcao pertinencia triangular
 
-    def __init__(self, start, stop):
-        self.tamanho = start
-        self.conteudo = stop
+    def __init__(self, start, vertice, stop):
+        self.start = start
+        self.vertice= vertice
+        self.stop = stop
+        
+            
+    def CalcPert(valor):
+
+
+
         
 
 def draw_tank(screen, tanque):
