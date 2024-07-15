@@ -3,7 +3,7 @@ import sys
 import curses
 import time
 import random
-
+import pandas as pd
 
 class Tanque():
     
@@ -64,9 +64,14 @@ class OutputTS():
             pert_dict['media'] = 0
             pert_dict['alta'] = 0
         
-        elif 3 < x_in < 7.5 :
+        elif 3 < x_in <= 6 :
             pert_dict['baixa'] = (6-x_in)/(6-3)
-            pert_dict['media'] = (3-x_in)/(7.5-3)
+            pert_dict['media'] = (x_in-3)/(7.5-3)
+            pert_dict['alta'] = 0
+
+        elif 6 < x_in < 7.5 :
+            pert_dict['baixa'] = 0
+            pert_dict['media'] = (x_in-3)/(7.5-3)
             pert_dict['alta'] = 0
         
         elif x_in == 7.5:
@@ -74,7 +79,12 @@ class OutputTS():
             pert_dict['media'] = 1
             pert_dict['alta'] = 0
 
-        elif 7.5 < x_in < 12:
+        elif 7.5 < x_in <= 9:
+            pert_dict['baixa'] = 0
+            pert_dict['media'] = (12-x_in)/(12-7.5)
+            pert_dict['alta'] = 0
+        
+        elif 9 < x_in < 12:
             pert_dict['baixa'] = 0
             pert_dict['media'] = (12-x_in)/(12-7.5)
             pert_dict['alta'] = (x_in-9)/(12-9)
@@ -97,12 +107,12 @@ class OutputTS():
             pert_dict['cheio'] = 0
         
         elif 20 < x_in <= 40 :
-            pert_dict['vazio'] = (40-x_in)/(40-20)
+            pert_dict['vazio'] = (x_in-20)/(40-20)
             pert_dict['ocupado'] = (50-x_in)/(50-20)
             pert_dict['cheio'] = 0
         
         elif 40 < x_in < 50 :
-            pert_dict['vazio'] = (40-x_in)/(40-20)
+            pert_dict['vazio'] = 0
             pert_dict['ocupado'] = (50-x_in)/(50-20)
             pert_dict['cheio'] = 0
         
@@ -114,7 +124,7 @@ class OutputTS():
         elif 50 < x_in <= 60:
             pert_dict['vazio'] = 0
             pert_dict['ocupado'] = (80-x_in)/(80-50)
-            pert_dict['cheio'] = (x_in-60)/(80-60)
+            pert_dict['cheio'] = 0
         
         elif 60 < x_in < 80:
             pert_dict['vazio'] = 0
@@ -155,7 +165,7 @@ class OutputTS():
     
     def CustomRule(self, word1, word2, operator, weight1, weight2):
         rules_str = f'{self.rule_counter} Se flow_in é {word1} {operator} volume é {word2}' 
-        self.rule_operators[rules_str] = 'e' 
+        self.rule_operators[rules_str] = operator 
         self.rule_words[rules_str] = [word1, word2]
         self.rule_weights[rules_str] = [weight1, weight2]
         self.rule_activations[rules_str] = round(min(self.pert_flow[word1], self.pert_vol[word2]), 2)
@@ -269,7 +279,7 @@ def Simulacao(screen, total_time):
 
     init_volume = 100
     flow_out = np.random.randint(0, 15)
-    
+
     flow_in = np.random.randint(0, 15)
     
     tanque = Tanque(init_volume, 0)
@@ -277,9 +287,16 @@ def Simulacao(screen, total_time):
     tsk = OutputTS()
     tsk.PertFlow(flow_in)
     tsk.PertVolume(init_volume)
-    tsk.CustomRule('alta', 'cheio', 'ou', 0.2, 0.05)
-    tsk.CustomRule('baixa', 'vazio', 'ou', -0.1, -0.01)
+    tsk.CustomRule('alta', 'cheio', 'ou', 0.1, 0.05)
+    tsk.CustomRule('baixa', 'vazio', 'ou', -0.1, -0.05)
+    tsk.CustomRule('baixa', 'cheio', 'e', -0.05, 0.08)
+    tsk.CustomRule('alta', 'vazio', 'e', 0.1, -0.08)
+    #tsk.BuildRules()
     
+    volume_history = []
+    flow_in_history = []
+    flow_out_history = []
+
     t = 0
     out=0
     counter=0
@@ -308,12 +325,20 @@ def Simulacao(screen, total_time):
         elif flow_out < 0:
             flow_out = 0
 
+        volume_history.append(tanque.volume)
+        flow_in_history.append(flow_in)
+        flow_out_history.append(flow_out)
+
+        df = pd.DataFrame({'flow_in': flow_in_history, 'flow_out': flow_out_history,  'volume': volume_history})
+        df.to_csv('history.csv')
 
         t += 1
-        time.sleep(0.5)
+        #time.sleep(0.1)
 
 
 curses.wrapper(Simulacao, 100)
+
+
 
 
 
